@@ -4,6 +4,40 @@
   "branch": "main",
   "blueprints": [
     {
+      "id": "corecompl3x",
+      "kind": "blueprint",
+      "name": "Basic Info + Ratings",
+      "description": "Resolution, Audio Codec, Audio Languages, Runtimes, Ratings from TMDB and IMDB all in a cleanish Layout",
+      "author": "corecompl3x",
+      "author_url": "https://github.com/corecompl3x",
+      "source_url": null,
+      "tags": [],
+      "min_posterizarr_version": "4.0.0",
+      "notes": null,
+      "path": "blueprints/corecompl3x",
+      "file": "blueprints/corecompl3x/custom_blueprint.zip",
+      "previews": [
+        "blueprints/corecompl3x/preview-background.jpg",
+        "blueprints/corecompl3x/preview-movie.jpg",
+        "blueprints/corecompl3x/preview-season.jpg",
+        "blueprints/corecompl3x/preview-show.jpg"
+      ],
+      "sections_count": 9,
+      "settings_count": 137,
+      "uses_logo": true,
+      "uses_borders": true,
+      "uses_text": true,
+      "is_bundle": true,
+      "asset_count": 3,
+      "file_size_bytes": 79730,
+      "sha256": "f9d62d4d5825c422f290938c16d79ec28dcfef284e82f207ee0bdf24267fde06",
+      "assets": [
+        "Colus-Regular.ttf",
+        "backgroundoverlay-innerglow2.png",
+        "overlay-innerglow2.png"
+      ]
+    },
+    {
       "id": "fscorrupt",
       "kind": "blueprint",
       "name": "FSCorrupt Inner-Glow Classic",
@@ -46,6 +80,82 @@
     }
   ],
   "dynamic_overlays": [
+    {
+      "id": "corecompl3x",
+      "kind": "dynamic-overlay",
+      "name": "Basic Info + Ratings",
+      "description": "Resolution, Audio Codec, Audio Languages, Runtimes, Ratings from TMDB and IMDB all in a cleanish Layout",
+      "author": "corecompl3x",
+      "author_url": "https://github.com/corecompl3x",
+      "source_url": null,
+      "tags": [],
+      "min_posterizarr_version": "4.0.0",
+      "notes": null,
+      "path": "dynamic-overlays/corecompl3x",
+      "file": "dynamic-overlays/corecompl3x/posterizarr-overlays.zip",
+      "previews": [
+        "dynamic-overlays/corecompl3x/preview-background.jpg",
+        "dynamic-overlays/corecompl3x/preview-movie.jpg",
+        "dynamic-overlays/corecompl3x/preview-season.jpg",
+        "dynamic-overlays/corecompl3x/preview-show.jpg"
+      ],
+      "libraries": [
+        {
+          "name": "Anime",
+          "media_type": "show",
+          "rule_count": 8,
+          "animetafill": true,
+          "season_ratings": false
+        },
+        {
+          "name": "Anime Filme",
+          "media_type": "movie",
+          "rule_count": 5,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "Filme",
+          "media_type": "movie",
+          "rule_count": 5,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "One Pace",
+          "media_type": "show",
+          "rule_count": 4,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "Serien",
+          "media_type": "show",
+          "rule_count": 8,
+          "animetafill": false,
+          "season_ratings": false
+        }
+      ],
+      "library_types": [
+        "movie",
+        "show"
+      ],
+      "features": {
+        "animetafill": true,
+        "imdb_dataset": true,
+        "rating_sources": [
+          "imdb",
+          "tmdb",
+          "tomatoes",
+          "tomatoesaudience"
+        ],
+        "official_dependency_count": 1108
+      },
+      "file_count": 2,
+      "asset_count": 0,
+      "bundle_size_bytes": 49711,
+      "bundle_sha256": "a0f421590f70081c247e4aa46b4cea5e4ab7c1f83b84e73e300913ed166da6d3"
+    },
     {
       "id": "fscorrupt",
       "kind": "dynamic-overlay",
