@@ -27,11 +27,27 @@ TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,29}$")
 PREVIEW_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 MAX_PREVIEW_BYTES = 2 * 1024 * 1024
 MAX_BLUEPRINT_BYTES = 256 * 1024
+MAX_BLUEPRINT_BUNDLE_BYTES = 25 * 1024 * 1024
+MAX_BLUEPRINT_UNCOMPRESSED_BYTES = 64 * 1024 * 1024
+MAX_BLUEPRINT_ASSET_BYTES = 10 * 1024 * 1024
+MAX_BLUEPRINT_BUNDLE_FILES = 64
+BLUEPRINT_BUNDLE_KIND = "posterizarr-blueprint-bundle"
+BLUEPRINT_BUNDLE_VERSION = 1
+BLUEPRINT_IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
+BLUEPRINT_FONT_EXTS = {".ttf", ".otf", ".woff", ".woff2"}
+BLUEPRINT_ASSET_EXTS = BLUEPRINT_IMAGE_EXTS | BLUEPRINT_FONT_EXTS
 MAX_BUNDLE_BYTES = 20 * 1024 * 1024
 MAX_BUNDLE_UNCOMPRESSED_BYTES = 100 * 1024 * 1024
 MAX_BUNDLE_FILES = 1024
 BUNDLE_ASSET_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".ttf", ".otf"}
 BUNDLE_ALLOWED_EXTS = BUNDLE_ASSET_EXTS | {".yml", ".yaml"}
+WINDOWS_RESERVED_STEMS = {
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    *(f"{prefix}{n}" for prefix in ("COM", "LPT") for n in range(1, 10)),
+}
 
 FORBIDDEN_BLUEPRINT_SECTIONS = {
     "WebUI",
@@ -172,6 +188,38 @@ def validate_safe_rel_filename(name: object) -> bool:
     return not any(ord(ch) < 32 for ch in name)
 
 
+def validate_blueprint_asset_filename(name: object) -> bool:
+    if not validate_safe_rel_filename(name):
+        return False
+    text = str(name)
+    if text != text.strip() or text in {".", ".."} or text.endswith((".", " ")):
+        return False
+    if text.split(".", 1)[0].upper() in WINDOWS_RESERVED_STEMS:
+        return False
+    return Path(text).suffix.lower() in BLUEPRINT_ASSET_EXTS
+
+
+def validate_asset_magic_bytes(filename: str, data: bytes) -> bool:
+    if not data:
+        return False
+    ext = Path(filename).suffix.lower()
+    if ext == ".png":
+        return data.startswith(b"\x89PNG\r\n\x1a\n")
+    if ext in {".jpg", ".jpeg"}:
+        return data.startswith(b"\xff\xd8\xff")
+    if ext == ".webp":
+        return len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+    if ext == ".ttf":
+        return len(data) >= 4 and data[:4] in (b"\x00\x01\x00\x00", b"true", b"typ1", b"ttcf")
+    if ext == ".otf":
+        return data.startswith(b"OTTO")
+    if ext == ".woff":
+        return data.startswith(b"wOFF")
+    if ext == ".woff2":
+        return data.startswith(b"wOF2")
+    return False
+
+
 def validate_bundle_zip_path(name: str) -> PurePosixPath | None:
     if not isinstance(name, str) or not name or "\\" in name or ":" in name or any(ord(ch) < 32 for ch in name):
         return None
@@ -182,20 +230,29 @@ def validate_bundle_zip_path(name: str) -> PurePosixPath | None:
 
 
 def find_blueprint_file(entry_dir: Path, rel_path: str, errors: list[str]) -> Path | None:
-    for preferred in ("blueprint.json", "custom_blueprint.json"):
-        candidate = entry_dir / preferred
-        if candidate.is_file():
-            return candidate
-    others = sorted(
+    zip_candidates = sorted(p for p in entry_dir.iterdir() if p.is_file() and p.suffix.lower() == ".zip")
+    json_candidates = sorted(
         p for p in entry_dir.iterdir()
         if p.is_file() and p.suffix.lower() == ".json" and p.name != "meta.json"
     )
-    if len(others) == 1:
-        return others[0]
-    if len(others) > 1:
+    if zip_candidates and json_candidates:
+        errors.append(f"{rel_path}: keep either custom_blueprint.zip or custom_blueprint.json, not both")
+        return None
+    for preferred in ("blueprint.zip", "custom_blueprint.zip", "blueprint.json", "custom_blueprint.json"):
+        candidate = entry_dir / preferred
+        if candidate.is_file():
+            return candidate
+    if len(zip_candidates) == 1:
+        return zip_candidates[0]
+    if len(zip_candidates) > 1:
+        errors.append(f"{rel_path}: found multiple ZIP files; keep only custom_blueprint.zip or blueprint.zip")
+        return None
+    if len(json_candidates) == 1:
+        return json_candidates[0]
+    if len(json_candidates) > 1:
         errors.append(f"{rel_path}: found multiple JSON files; keep only custom_blueprint.json or blueprint.json")
     else:
-        errors.append(f"{rel_path}: missing blueprint JSON file (e.g. custom_blueprint.json or blueprint.json)")
+        errors.append(f"{rel_path}: missing blueprint file (custom_blueprint.zip / custom_blueprint.json)")
     return None
 
 
@@ -297,18 +354,97 @@ def validate_blueprint_entry(entry_id: str, rel_path: str, entry_dir: Path, erro
     if bp_path is None:
         return None
     raw_bytes = bp_path.read_bytes()
-    if len(raw_bytes) == 0 or len(raw_bytes) > MAX_BLUEPRINT_BYTES:
-        errors.append(f"{rel_path}: blueprint.json must be 1..{MAX_BLUEPRINT_BYTES} bytes")
-        return None
-    try:
-        raw_text = raw_bytes.decode("utf-8")
-        bp_json = json.loads(raw_text)
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        errors.append(f"{rel_path}: invalid blueprint.json ({exc})")
-        return None
-    if not isinstance(bp_json, dict):
-        errors.append(f"{rel_path}: blueprint.json must be a JSON object")
-        return None
+    is_zip = bp_path.suffix.lower() == ".zip"
+    bundled_assets: dict[str, bytes] = {}
+
+    if is_zip:
+        if len(raw_bytes) == 0 or len(raw_bytes) > MAX_BLUEPRINT_BUNDLE_BYTES:
+            errors.append(f"{rel_path}: {bp_path.name} must be 1..{MAX_BLUEPRINT_BUNDLE_BYTES} bytes")
+            return None
+        blueprint_raw: bytes | None = None
+        seen_paths: set[str] = set()
+        try:
+            with zipfile.ZipFile(bp_path) as archive:
+                members = archive.infolist()
+                if len(members) > MAX_BLUEPRINT_BUNDLE_FILES or sum(m.file_size for m in members) > MAX_BLUEPRINT_UNCOMPRESSED_BYTES:
+                    errors.append(f"{rel_path}: {bp_path.name} exceeds file count or uncompressed size limit")
+                    return None
+                for member in members:
+                    if member.is_dir():
+                        continue
+                    path = validate_bundle_zip_path(member.orig_filename)
+                    if path is None:
+                        errors.append(f"{rel_path}: {bp_path.name} contains invalid path '{member.orig_filename}'")
+                        return None
+                    if stat.S_ISLNK(member.external_attr >> 16) or (member.flag_bits & 1):
+                        errors.append(f"{rel_path}: {bp_path.name} contains symlink or encrypted entry '{path}'")
+                        return None
+                    folded = path.as_posix().casefold()
+                    if folded in seen_paths:
+                        errors.append(f"{rel_path}: {bp_path.name} contains duplicate path '{path}'")
+                        return None
+                    seen_paths.add(folded)
+                    if member.file_size > 1024 * 1024 and member.file_size > max(1, member.compress_size) * 200:
+                        errors.append(f"{rel_path}: {bp_path.name} contains excessive compression in '{path}'")
+                        return None
+                    if path.as_posix() == "blueprint.json":
+                        if member.file_size == 0 or member.file_size > MAX_BLUEPRINT_BYTES:
+                            errors.append(f"{rel_path}: bundled blueprint.json must be 1..{MAX_BLUEPRINT_BYTES} bytes")
+                            return None
+                        blueprint_raw = archive.read(member)
+                    elif len(path.parts) == 2 and path.parts[0] == "assets" and validate_blueprint_asset_filename(path.parts[1]):
+                        asset_name = path.parts[1]
+                        if member.file_size == 0 or member.file_size > MAX_BLUEPRINT_ASSET_BYTES:
+                            errors.append(f"{rel_path}: bundled asset '{asset_name}' exceeds {MAX_BLUEPRINT_ASSET_BYTES} bytes")
+                            return None
+                        data = archive.read(member)
+                        if not validate_asset_magic_bytes(asset_name, data):
+                            errors.append(f"{rel_path}: bundled asset '{asset_name}' failed format verification")
+                            return None
+                        bundled_assets[asset_name] = data
+                    else:
+                        errors.append(f"{rel_path}: {bp_path.name} contains disallowed file '{path}'")
+                        return None
+        except (zipfile.BadZipFile, RuntimeError, EOFError) as exc:
+            errors.append(f"{rel_path}: invalid {bp_path.name} ({exc})")
+            return None
+
+        if blueprint_raw is None:
+            errors.append(f"{rel_path}: {bp_path.name} missing blueprint.json")
+            return None
+        try:
+            raw_text = blueprint_raw.decode("utf-8")
+            bp_json = json.loads(raw_text)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            errors.append(f"{rel_path}: invalid bundled blueprint.json ({exc})")
+            return None
+        if not isinstance(bp_json, dict):
+            errors.append(f"{rel_path}: bundled blueprint.json must be a JSON object")
+            return None
+        if bp_json.get("kind") != BLUEPRINT_BUNDLE_KIND or bp_json.get("version") != BLUEPRINT_BUNDLE_VERSION:
+            errors.append(f"{rel_path}: unsupported blueprint bundle manifest kind/version")
+            return None
+        manifest_assets = bp_json.get("assets")
+        if not isinstance(manifest_assets, dict) or set(manifest_assets.keys()) != set(bundled_assets.keys()):
+            errors.append(f"{rel_path}: blueprint bundle asset manifest mismatch")
+            return None
+        for asset_name, data in bundled_assets.items():
+            asset_meta = manifest_assets.get(asset_name)
+            if not isinstance(asset_meta, dict) or asset_meta.get("sha256") != hashlib.sha256(data).hexdigest():
+                errors.append(f"{rel_path}: checksum mismatch for bundled asset '{asset_name}'")
+    else:
+        if len(raw_bytes) == 0 or len(raw_bytes) > MAX_BLUEPRINT_BYTES:
+            errors.append(f"{rel_path}: blueprint.json must be 1..{MAX_BLUEPRINT_BYTES} bytes")
+            return None
+        try:
+            raw_text = raw_bytes.decode("utf-8")
+            bp_json = json.loads(raw_text)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            errors.append(f"{rel_path}: invalid blueprint.json ({exc})")
+            return None
+        if not isinstance(bp_json, dict):
+            errors.append(f"{rel_path}: blueprint.json must be a JSON object")
+            return None
 
     scan_text_for_secrets(raw_text, f"{rel_path}/blueprint.json", errors)
 
@@ -323,6 +459,7 @@ def validate_blueprint_entry(entry_id: str, rel_path: str, entry_dir: Path, erro
         return None
 
     settings_count = 0
+    referenced_folded: set[str] = set()
     for section_name, section_fields in sections.items():
         if section_name in FORBIDDEN_BLUEPRINT_SECTIONS or section_name not in ALLOWED_BLUEPRINT_SECTIONS:
             errors.append(f"{rel_path}: disallowed blueprint section '{section_name}'")
@@ -336,9 +473,17 @@ def validate_blueprint_entry(entry_id: str, rel_path: str, entry_dir: Path, erro
             elif section_name == "PrerequisitePart" and key not in ALLOWED_PREREQUISITE_VISUAL_KEYS:
                 errors.append(f"{rel_path}: disallowed key 'PrerequisitePart.{key}'")
             elif key in FILENAME_KEYS and value not in (None, ""):
-                if not validate_safe_rel_filename(str(value)):
+                text_val = str(value)
+                if not validate_safe_rel_filename(text_val):
                     errors.append(f"{rel_path}: filename key '{section_name}.{key}' must not contain path separators")
+                else:
+                    referenced_folded.add(text_val.strip().casefold())
             settings_count += 1
+
+    if is_zip:
+        for asset_name in bundled_assets:
+            if asset_name.casefold() not in referenced_folded:
+                errors.append(f"{rel_path}: bundled asset '{asset_name}' is not referenced in blueprint.json")
 
     if meta is None or any(err.startswith(f"{rel_path}:") for err in errors):
         return None
@@ -349,7 +494,7 @@ def validate_blueprint_entry(entry_id: str, rel_path: str, entry_dir: Path, erro
     uses_borders = str(poster.get("AddBorder", "")).lower() == "true"
     uses_text = str(poster.get("AddText", "")).lower() == "true"
 
-    return {
+    result = {
         "id": entry_id,
         "kind": "blueprint",
         "name": meta["name"].strip(),
@@ -368,9 +513,14 @@ def validate_blueprint_entry(entry_id: str, rel_path: str, entry_dir: Path, erro
         "uses_logo": uses_logo,
         "uses_borders": uses_borders,
         "uses_text": uses_text,
+        "is_bundle": is_zip,
+        "asset_count": len(bundled_assets),
         "file_size_bytes": len(raw_bytes),
         "sha256": hashlib.sha256(raw_bytes).hexdigest(),
     }
+    if is_zip:
+        result["assets"] = sorted(bundled_assets)
+    return result
 
 
 def validate_overlay_entry(entry_id: str, rel_path: str, entry_dir: Path, errors: list[str], default_author: str | None = None) -> dict | None:
