@@ -21,7 +21,7 @@
       "min_posterizarr_version": "4.0.0",
       "notes": "Uses Posterizarr's built-in overlay-innerglow.png and backgroundoverlay-innerglow.png files. Preview images also show Dynamic Overlays applied on top.",
       "path": "blueprints/fscorrupt",
-      "file": "blueprints/fscorrupt/blueprint.json",
+      "file": "blueprints/fscorrupt/custom_blueprint.zip",
       "previews": [
         "blueprints/fscorrupt/preview-movie.jpg",
         "blueprints/fscorrupt/preview-show.jpg",
@@ -29,14 +29,20 @@
         "blueprints/fscorrupt/preview-titlecard.jpg"
       ],
       "sections_count": 9,
-      "settings_count": 132,
+      "settings_count": 137,
       "uses_logo": false,
       "uses_borders": true,
       "uses_text": true,
-      "is_bundle": false,
-      "asset_count": 0,
-      "file_size_bytes": 5102,
-      "sha256": "e57a93532105c6a6e95b68f1e77b70dfea88a406b500730adddc252c1e0a7392"
+      "is_bundle": true,
+      "asset_count": 4,
+      "file_size_bytes": 129581,
+      "sha256": "8363bf51864f89f586878bcb4c1b6780f4328a1848c30f31972e3255ba3532d9",
+      "assets": [
+        "Colus-Regular.ttf",
+        "VarelaRound-Regular.ttf",
+        "backgroundoverlay-innerglow.png",
+        "overlay-innerglow.png"
+      ]
     }
   ],
   "dynamic_overlays": [
