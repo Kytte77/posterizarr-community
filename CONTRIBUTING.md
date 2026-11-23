@@ -7,7 +7,7 @@ Thank you for sharing your Posterizarr style or overlay setup! You can submit ev
 - **Blueprints:** `blueprints/<your-github-username>/` *(or `blueprints/<your-github-username>/<preset-slug>/` if you share more than one style)*
 - **Dynamic Overlays:** `dynamic-overlays/<your-github-username>/` *(or `dynamic-overlays/<your-github-username>/<bundle-slug>/` if you share more than one bundle)*
 - Use your exported filename directly:
-  - Blueprints export automatically as `custom_blueprint.zip` when your style uses custom overlay PNGs or custom fonts, or `custom_blueprint.json` when it uses only Posterizarr's built-in assets (`blueprint.zip` / `blueprint.json` also work).
+  - Blueprints export automatically as `custom_blueprint.zip` whenever active overlay images or fonts (including customized default-named files) are included, or `custom_blueprint.json` for settings-only styles (`blueprint.zip` / `blueprint.json` also work).
   - Dynamic Overlays export as `posterizarr-overlays.zip` (`bundle.zip` also works).
 - Drop **1–4 preview screenshots** (`.jpg`, `.jpeg`, `.png`, or `.webp`, max `2 MiB` each) into the same folder — they are detected automatically!
 - Do **not** edit `index.json` manually — GitHub Actions rebuilds it automatically on merge.
@@ -56,7 +56,7 @@ If you want extra details or custom preview order, you can add any of these:
 ## Automated Safety Checks (GitHub Actions)
 
 When you open a Pull Request, GitHub automatically verifies:
-- **Blueprints:** `.json` up to `256 KiB`, or `.zip` bundle (`posterizarr-blueprint-bundle` v1) up to `25 MiB` containing `blueprint.json` plus referenced custom overlay images / fonts in `assets/` — visual settings only (no server URLs, API keys, webhooks, or local file paths).
+- **Blueprints:** `.json` up to `256 KiB`, or `.zip` bundle (`posterizarr-blueprint-bundle` v1) up to `25 MiB` containing `blueprint.json` plus referenced overlay images / fonts in `assets/` — visual settings only (no server URLs, API keys, webhooks, or local file paths).
 - **Dynamic Overlays:** valid Posterizarr export bundle (`posterizarr-overlay-bundle` v1), max `20 MiB`, valid checksums, and no leaked credentials or LAN URLs.
 
 *(Maintainers / developers testing locally can optionally run `python scripts/validate_and_index.py --strict`.)*

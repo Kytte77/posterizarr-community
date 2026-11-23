@@ -27,7 +27,7 @@ posterizarr-community/
 ## How to Submit (100% in your Browser — no Git or Python needed)
 
 1. **Export from Posterizarr:**
-   - **Blueprint:** Open **Builders > Blueprint Builder**, configure your style, and click **Export** (downloads `custom_blueprint.zip` automatically if custom overlays/fonts are used, or `custom_blueprint.json` for built-ins only).
+   - **Blueprint:** Open **Builders > Blueprint Builder**, configure your style, and click **Export** (downloads `custom_blueprint.zip` automatically whenever overlay/font files are included — including modified default-named files — or `custom_blueprint.json` for settings-only styles).
    - **Dynamic Overlays:** Open **Builders > Dynamic Overlays** and click **Export bundle** (`posterizarr-overlays.zip`). Posterizarr automatically strips API keys, tokens, and media server credentials.
 2. **Upload in GitHub:**
    - Fork this repository, open `blueprints/` or `dynamic-overlays/`, and upload your export file + **1–4 preview screenshots** into `<your-github-username>/` (e.g. `blueprints/johndoe/`).
