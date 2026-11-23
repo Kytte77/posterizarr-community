@@ -6,8 +6,8 @@
     {
       "id": "corecompl3x",
       "kind": "blueprint",
-      "name": "Basic Info + Ratings",
-      "description": "Resolution, Audio Codec, Audio Languages, Runtimes, Ratings from TMDB and IMDB all in a cleanish Layout",
+      "name": "Colored Logo and stronger Inner-Glow",
+      "description": "Colored Logo and stronger Inner-Glow",
       "author": "corecompl3x",
       "author_url": "https://github.com/corecompl3x",
       "source_url": null,
