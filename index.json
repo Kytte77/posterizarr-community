@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "repo": "fscorrupt/posterizarr-community",
+  "branch": "main",
+  "blueprints": [
+    {
+      "id": "fscorrupt",
+      "kind": "blueprint",
+      "name": "FSCorrupt Inner-Glow Classic",
+      "description": "Clean black-bordered posters, seasons, backgrounds, and episode title cards with all-caps white typography and Posterizarr's built-in inner-glow gradient overlay.",
+      "author": "fscorrupt",
+      "author_url": "https://github.com/fscorrupt",
+      "source_url": null,
+      "tags": [
+        "inner-glow",
+        "borders",
+        "text",
+        "all-caps",
+        "titlecards"
+      ],
+      "min_posterizarr_version": "4.0.0",
+      "notes": "Uses Posterizarr's built-in overlay-innerglow.png and backgroundoverlay-innerglow.png files. Preview images also show Dynamic Overlays applied on top.",
+      "path": "blueprints/fscorrupt",
+      "file": "blueprints/fscorrupt/blueprint.json",
+      "previews": [
+        "blueprints/fscorrupt/preview-movie.jpg",
+        "blueprints/fscorrupt/preview-show.jpg",
+        "blueprints/fscorrupt/preview-season.jpg",
+        "blueprints/fscorrupt/preview-titlecard.jpg"
+      ],
+      "sections_count": 9,
+      "settings_count": 132,
+      "uses_logo": false,
+      "uses_borders": true,
+      "uses_text": true,
+      "file_size_bytes": 5259,
+      "sha256": "3a93c3ecce86a8b25239ae1ccb9dc68d4d679ffe2ac841a8c1cd97d6036bf8f8"
+    }
+  ],
+  "dynamic_overlays": [
+    {
+      "id": "fscorrupt",
+      "kind": "dynamic-overlay",
+      "name": "FSCorrupt Full Overlay Suite",
+      "description": "Complete Dynamic Overlays setup covering Movies, 4K Movies, Kids Movies, TV Shows, 4K TV Shows, Kids Shows, Anime, and Anime Shows with ratings, resolution badges, show status, season ratings, and AniMetaFill.",
+      "author": "fscorrupt",
+      "author_url": "https://github.com/fscorrupt",
+      "source_url": "https://github.com/Kometa-Team/Community-Configs/tree/master/fscorrupt",
+      "tags": [
+        "movies",
+        "shows",
+        "anime",
+        "animetafill",
+        "ratings",
+        "4k"
+      ],
+      "min_posterizarr_version": "4.0.0",
+      "notes": "Map only the library profiles you need during import. Download official Kometa defaults in Dynamic Overlays if not already installed; AniMetaFill requires a SIMKL Client ID.",
+      "path": "dynamic-overlays/fscorrupt",
+      "file": "dynamic-overlays/fscorrupt/bundle.zip",
+      "previews": [
+        "dynamic-overlays/fscorrupt/preview-movie.jpg",
+        "dynamic-overlays/fscorrupt/preview-show.jpg",
+        "dynamic-overlays/fscorrupt/preview-season.jpg",
+        "dynamic-overlays/fscorrupt/preview-anime-titlecard.jpg"
+      ],
+      "libraries": [
+        {
+          "name": "4K Movies",
+          "media_type": "movie",
+          "rule_count": 5,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "4K TV Shows",
+          "media_type": "show",
+          "rule_count": 6,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "Anime",
+          "media_type": "movie",
+          "rule_count": 5,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "Anime Shows",
+          "media_type": "show",
+          "rule_count": 7,
+          "animetafill": true,
+          "season_ratings": true
+        },
+        {
+          "name": "Kids Movies",
+          "media_type": "movie",
+          "rule_count": 5,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "Kids Shows",
+          "media_type": "show",
+          "rule_count": 6,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "Movies",
+          "media_type": "movie",
+          "rule_count": 5,
+          "animetafill": false,
+          "season_ratings": false
+        },
+        {
+          "name": "TV Shows",
+          "media_type": "show",
+          "rule_count": 6,
+          "animetafill": false,
+          "season_ratings": false
+        }
+      ],
+      "library_types": [
+        "movie",
+        "show"
+      ],
+      "features": {
+        "animetafill": true,
+        "imdb_dataset": true,
+        "rating_sources": [
+          "imdb",
+          "tmdb",
+          "tomatoes",
+          "tomatoesaudience"
+        ],
+        "official_dependency_count": 1004
+      },
+      "file_count": 6,
+      "asset_count": 2,
+      "bundle_size_bytes": 146115,
+      "bundle_sha256": "6582140fed393506c308f204cc44e4eab8feb9b90b2812b7238b352f49d953c0"
+    }
+  ]
+}

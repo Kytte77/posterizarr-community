@@ -1,0 +1,21 @@
+{
+  "name": "FSCorrupt Inner-Glow Classic",
+  "description": "Clean black-bordered posters, seasons, backgrounds, and episode title cards with all-caps white typography and Posterizarr's built-in inner-glow gradient overlay.",
+  "author": "fscorrupt",
+  "author_url": "https://github.com/fscorrupt",
+  "tags": [
+    "inner-glow",
+    "borders",
+    "text",
+    "all-caps",
+    "titlecards"
+  ],
+  "min_posterizarr_version": "4.0.0",
+  "previews": [
+    "preview-movie.jpg",
+    "preview-show.jpg",
+    "preview-season.jpg",
+    "preview-titlecard.jpg"
+  ],
+  "notes": "Uses Posterizarr's built-in overlay-innerglow.png and backgroundoverlay-innerglow.png files. Preview images also show Dynamic Overlays applied on top."
+}

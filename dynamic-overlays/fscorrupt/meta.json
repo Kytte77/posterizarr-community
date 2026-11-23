@@ -1,0 +1,23 @@
+{
+  "name": "FSCorrupt Full Overlay Suite",
+  "description": "Complete Dynamic Overlays setup covering Movies, 4K Movies, Kids Movies, TV Shows, 4K TV Shows, Kids Shows, Anime, and Anime Shows with ratings, resolution badges, show status, season ratings, and AniMetaFill.",
+  "author": "fscorrupt",
+  "author_url": "https://github.com/fscorrupt",
+  "source_url": "https://github.com/Kometa-Team/Community-Configs/tree/master/fscorrupt",
+  "tags": [
+    "movies",
+    "shows",
+    "anime",
+    "animetafill",
+    "ratings",
+    "4k"
+  ],
+  "min_posterizarr_version": "4.0.0",
+  "previews": [
+    "preview-movie.jpg",
+    "preview-show.jpg",
+    "preview-season.jpg",
+    "preview-anime-titlecard.jpg"
+  ],
+  "notes": "Map only the library profiles you need during import. Download official Kometa defaults in Dynamic Overlays if not already installed; AniMetaFill requires a SIMKL Client ID."
+}
